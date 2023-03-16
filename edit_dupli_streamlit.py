@@ -17,6 +17,7 @@ if uploaded_file is not None:
 
     for i, page in enumerate(pdf_reader.pages):
         text = page.extractText()
+        st.write(text)
 
         try:
             gregory_loc = text.index("Gregory")
