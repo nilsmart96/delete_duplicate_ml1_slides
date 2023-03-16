@@ -1,13 +1,11 @@
+import streamlit as st
 import io
 import PyPDF2
-import tempfile
+
 
 def delete_duplicate_pages(input_file):
-    # Open the uploaded PDF file in read binary mode
-    pdf_file = input_file.read()
-
     # Create a PDF reader object
-    pdf_reader = PyPDF2.PdfFileReader(io.BytesIO(pdf_file))
+    pdf_reader = PyPDF2.PdfFileReader(input_file)
 
     # Create a PDF writer object
     pdf_writer = PyPDF2.PdfFileWriter()
@@ -60,14 +58,12 @@ def delete_duplicate_pages(input_file):
         if i not in del_list:
             pdf_writer.addPage(page)
 
-    # Save the new PDF file to a temporary file
-    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as f:
-        pdf_writer.write(f)
+    # Save the new PDF file in write binary mode
+    output_file = io.BytesIO()
+    pdf_writer.write(output_file)
 
-    # Return the path to the temporary file
-    return f.name
+    return output_file.getvalue()
 
-import streamlit as st
 
 def main():
     st.title("Delete Duplicate Pages from PDF")
@@ -76,10 +72,17 @@ def main():
     uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
 
     if uploaded_file is not None:
-        # Delete duplicate pages and get the output file path
-        output_file_path = delete_duplicate_pages(uploaded_file)
+        # Delete duplicate pages and get the output file
+        output_file = delete_duplicate_pages(uploaded_file)
 
         # Create a download button for the output file
-        with open(output_file_path, "rb") as f:
-            output
+        st.download_button(
+            label="Download the Output PDF file",
+            data=output_file,
+            file_name="output.pdf",
+            mime="application/pdf",
+        )
 
+
+if __name__ == "__main__":
+    main()
