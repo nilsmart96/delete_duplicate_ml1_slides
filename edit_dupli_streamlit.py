@@ -4,7 +4,7 @@ import PyPDF2
 
 def delete_duplicate_pages(input_file):
     # Open the PDF file in read binary mode
-    pdf_file = open(input_file, "rb")
+    pdf_file = open(input_file.name, "rb")
 
     # Create a PDF reader object
     pdf_reader = PyPDF2.PdfFileReader(pdf_file)
