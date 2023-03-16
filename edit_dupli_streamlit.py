@@ -16,7 +16,7 @@ if uploaded_file is not None:
     page_nums = [0]
 
     for i, page in enumerate(pdf_reader.pages):
-        text = page.extractText()
+        text = page.extract_text()
 
         try:
             gregory_loc = text.index("Gregory")
@@ -47,13 +47,15 @@ if uploaded_file is not None:
         if i not in del_list:
             pdf_writer.addPage(page)
 
-    # Create a download link for the new PDF file
-    stream = io.BytesIO()
-    pdf_writer.write(stream)
-    stream.seek(0)
+    # Write the new PDF file to a bytes buffer
+    pdf_output = io.BytesIO()
+    pdf_writer.write(pdf_output)
+    pdf_output.seek(0)
+
+    # Download the new PDF file using Streamlit's download_button function
     st.download_button(
         label="Download updated PDF",
-        data=stream,
+        data=pdf_output,
         file_name="updated.pdf",
         mime="application/pdf"
     )
