@@ -1,30 +1,24 @@
+import io
+from PyPDF2 import PdfFileReader, PdfFileWriter
 import streamlit as st
-import PyPDF2
-from io import BytesIO
 
-st.set_page_config(page_title="PDF Pages Deleter", page_icon=":books:", layout="wide")
-
-# Define the function to delete duplicate pages
-def delete_duplicate_pages(input_file):
-    # Open the PDF file in read binary mode
-    pdf_file = open(input_file, "rb")
+def delete_duplicate_pages(uploaded_file):
+    # Read the uploaded file as bytes
+    file_buffer = io.BytesIO(uploaded_file.getbuffer())
 
     # Create a PDF reader object
-    pdf_reader = PyPDF2.PdfFileReader(pdf_file)
+    pdf_reader = PdfFileReader(file_buffer)
 
     # Create a PDF writer object
-    pdf_writer = PyPDF2.PdfFileWriter()
+    pdf_writer = PdfFileWriter()
 
     # Initialize a list to store the page numbers
     page_nums = [0]
 
     # Loop through each page of the PDF
-    for i in range(pdf_reader.getNumPages()):
-        # Get the page object
-        page = pdf_reader.getPage(i)
-
+    for i, page in enumerate(pdf_reader.pages):
         # Extract the text from the page
-        text = page.extractText()
+        text = page.extract_text()
 
         try:
             # Find the index of the text "Gregory"
@@ -61,35 +55,26 @@ def delete_duplicate_pages(input_file):
         i += 1
 
     # Loop through each page of the PDF again
-    for i in range(pdf_reader.getNumPages()):
+    for i, page in enumerate(pdf_reader.pages):
         # If the current page is not in del_list, add it to the new PDF
         if i not in del_list:
-            pdf_writer.addPage(pdf_reader.getPage(i))
+            pdf_writer.addPage(page)
 
-    # Save the new PDF file in write binary mode
-    output_file = BytesIO()
-    pdf_writer.write(output_file)
+    # Create a bytes buffer to write the output PDF to
+    output_buffer = io.BytesIO()
 
-    # Close the PDF files
-    pdf_file.close()
+    # Save the new PDF file in write binary mode to the buffer
+    pdf_writer.write(output_buffer)
 
-    return output_file
+    # Reset the buffer position to the start
+    output_buffer.seek(0)
+
+    return output_buffer
 
 
-# Define the main function
 def main():
-    st.title("Delete Duplicate Pages in PDF")
-
-    # Upload the PDF file
-    uploaded_file = st.file_uploader("Upload a PDF file", type=["pdf"])
-
+    st.title("Delete Duplicate Pages from PDF")
+    uploaded_file = st.file_uploader("Choose a PDF file")
     if uploaded_file is not None:
-        # Delete duplicate pages
         output_file = delete_duplicate_pages(uploaded_file)
-
-        # Download the new PDF file
-        st.download_button("Download the new PDF file", output_file.getvalue(), file_name="new_pdf_file.pdf")
-
-
-if __name__ == "__main__":
-    main()
+        st.download_button("Download Output PDF", data=output_file.getvalue(), file_name="output.pdf")
