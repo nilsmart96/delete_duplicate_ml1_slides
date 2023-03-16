@@ -6,10 +6,8 @@ from io import BytesIO
 uploaded_file = st.file_uploader("Upload PDF file", type="pdf")
 # If the user uploaded a file
 if uploaded_file is not None:
-    # Read the uploaded PDF file as a bytes object using BytesIO
-    pdf_bytes = BytesIO(uploaded_file.read())
     # Create a PDF reader object
-    pdf_reader = PyPDF2.PdfFileReader(pdf_bytes)
+    pdf_reader = PyPDF2.PdfFileReader(uploaded_file)
     # Create a PDF writer object
     pdf_writer = PyPDF2.PdfFileWriter()
     # Initialize a list to store the page numbers
