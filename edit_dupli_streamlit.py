@@ -1,81 +1,95 @@
-import PyPDF2
 import streamlit as st
+import PyPDF2
+from io import BytesIO
 
-def delete_duplicate_pages(input_file_path, output_file_path):
-    # Open the input PDF file in read binary mode
-    with open(input_file_path, "rb") as input_file:
-        # Create a PDF reader object
-        pdf_reader = PyPDF2.PdfFileReader(input_file)
+st.set_page_config(page_title="PDF Pages Deleter", page_icon=":books:", layout="wide")
 
-        # Create a PDF writer object
-        pdf_writer = PyPDF2.PdfFileWriter()
+# Define the function to delete duplicate pages
+def delete_duplicate_pages(input_file):
+    # Open the PDF file in read binary mode
+    pdf_file = open(input_file, "rb")
 
-        # Initialize a list to store the page numbers
-        page_nums = [0]
+    # Create a PDF reader object
+    pdf_reader = PyPDF2.PdfFileReader(pdf_file)
 
-        # Loop through each page of the PDF
-        for i, page in enumerate(pdf_reader.pages):
-            # Extract the text from the page
-            text = page.extract_text()
-        
+    # Create a PDF writer object
+    pdf_writer = PyPDF2.PdfFileWriter()
+
+    # Initialize a list to store the page numbers
+    page_nums = [0]
+
+    # Loop through each page of the PDF
+    for i in range(pdf_reader.getNumPages()):
+        # Get the page object
+        page = pdf_reader.getPage(i)
+
+        # Extract the text from the page
+        text = page.extractText()
+
+        try:
+            # Find the index of the text "Gregory"
+            gregory_loc = text.index("Gregory")
+
+            # Get the page number at the bottom right
+            page_num_1 = text[gregory_loc + 17]
+            page_nums.append(int(page_num_1))
+
             try:
-                # Find the index of the text "Gregory"
-                gregory_loc = text.index("Gregory")
-        
-                # Get the page number at the bottom right
-                page_num_1 = text[gregory_loc + 17]
-                page_nums.append(int(page_num_1))
-        
-                try:
-                    # If the page number has two digits
-                    page_num_2 = text[gregory_loc + 18]
-                    # Replace the last element in page_nums with the two-digit page number
-                    del page_nums[-1]
-                    page_nums.append(int(page_num_1 + page_num_2))
-        
-                except IndexError:
-                    # If the page number has one digit, do nothing
-                    continue
-                
-            except ValueError:
-                # If "Gregory" is not found, increment the previous page number by 1
-                page_nums.append(page_nums[-1] + 1)
-        
-        # Initialize a list to store the indices of pages to delete
-        del_list = []
-        i = 1
-        while i < len(page_nums):
-            # If two consecutive pages have the same page number
-            if page_nums[i - 1] == page_nums[i]:
-                # Add the index of the previous page to del_list
-                del_list.append(i - 2)
-        
-            i += 1
-        
-        # Loop through each page of the PDF again
-        for i, page in enumerate(pdf_reader.pages):
-            # If the current page is not in del_list, add it to the new PDF
-            if i not in del_list:
-                pdf_writer.add_page(page)
+                # If the page number has two digits
+                page_num_2 = text[gregory_loc + 18]
+                # Replace the last element in page_nums with the two-digit page number
+                del page_nums[-1]
+                page_nums.append(int(page_num_1 + page_num_2))
 
-        # Save the new PDF file in write binary mode
-        with open(output_file_path, "wb") as output_file:
-            pdf_writer.write(output_file)
+            except IndexError:
+                # If the page number has one digit, do nothing
+                continue
 
-    st.success("Duplicate pages have been removed from the PDF.")
+        except ValueError:
+            # If "Gregory" is not found, increment the previous page number by 1
+            page_nums.append(page_nums[-1] + 1)
 
-# Create the Streamlit app
-st.title("Remove Duplicate Pages from PDF")
-input_file = st.file_uploader("Upload a PDF file", type="pdf")
+    # Initialize a list to store the indices of pages to delete
+    del_list = []
+    i = 1
+    while i < len(page_nums):
+        # If two consecutive pages have the same page number
+        if page_nums[i - 1] == page_nums[i]:
+            # Add the index of the previous page to del_list
+            del_list.append(i - 2)
 
-if input_file is not None:
-    # Save the uploaded file to a temporary location
-    with open("input_file.pdf", "wb") as input_:
-        input_.write(input_file.getbuffer())
+        i += 1
 
-    # Call the delete_duplicate_pages function
-    delete_duplicate_pages("input_file.pdf", "output_file.pdf")
+    # Loop through each page of the PDF again
+    for i in range(pdf_reader.getNumPages()):
+        # If the current page is not in del_list, add it to the new PDF
+        if i not in del_list:
+            pdf_writer.addPage(pdf_reader.getPage(i))
 
-    # Download the output file
-    with open("output_file.pdf", "rb") as output:
-        st.download_button("Download the output file", output.read(), file_name="output_file.pdf", mime="application/pdf")
+    # Save the new PDF file in write binary mode
+    output_file = BytesIO()
+    pdf_writer.write(output_file)
+
+    # Close the PDF files
+    pdf_file.close()
+
+    return output_file
+
+
+# Define the main function
+def main():
+    st.title("Delete Duplicate Pages in PDF")
+
+    # Upload the PDF file
+    uploaded_file = st.file_uploader("Upload a PDF file", type=["pdf"])
+
+    if uploaded_file is not None:
+        # Delete duplicate pages
+        output_file = delete_duplicate_pages(uploaded_file)
+
+        # Download the new PDF file
+        st.download_button("Download the new PDF file", output_file.getvalue(), file_name="new_pdf_file.pdf")
+
+
+if __name__ == "__main__":
+    main()
