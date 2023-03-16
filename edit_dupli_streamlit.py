@@ -1,14 +1,13 @@
 import streamlit as st
-import io
 import PyPDF2
 
 
 def delete_duplicate_pages(input_file):
-    # Open the uploaded PDF file in read binary mode
-    pdf_file = input_file.read()
+    # Open the PDF file in read binary mode
+    pdf_file = open(input_file, "rb")
 
     # Create a PDF reader object
-    pdf_reader = PyPDF2.PdfFileReader(io.BytesIO(pdf_file))
+    pdf_reader = PyPDF2.PdfFileReader(pdf_file)
 
     # Create a PDF writer object
     pdf_writer = PyPDF2.PdfFileWriter()
@@ -62,10 +61,10 @@ def delete_duplicate_pages(input_file):
             pdf_writer.addPage(page)
 
     # Save the new PDF file in write binary mode
-    output_file = io.BytesIO()
+    output_file = open("output.pdf", "wb")
     pdf_writer.write(output_file)
 
-    return output_file.getvalue()
+    return output_file
 
 
 def main():
