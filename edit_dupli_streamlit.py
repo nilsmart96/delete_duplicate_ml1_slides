@@ -19,7 +19,7 @@ def delete_duplicate_pages(input_file):
     # Loop through each page of the PDF
     for i, page in enumerate(pdf_reader.pages):
         # Extract the text from the page
-        text = page.extract_text()
+        text = page.extractText()
 
         try:
             # Find the index of the text "Gregory"
