@@ -1,16 +1,17 @@
-import io
-from PyPDF2 import PdfFileReader, PdfFileWriter
 import streamlit as st
+import io
+import PyPDF2
 
-def delete_duplicate_pages(uploaded_file):
-    # Read the uploaded file as bytes
-    file_buffer = io.BytesIO(uploaded_file.getbuffer())
+
+def delete_duplicate_pages(input_file):
+    # Open the uploaded PDF file in read binary mode
+    pdf_file = input_file.read()
 
     # Create a PDF reader object
-    pdf_reader = PdfFileReader(file_buffer)
+    pdf_reader = PyPDF2.PdfFileReader(io.BytesIO(pdf_file))
 
     # Create a PDF writer object
-    pdf_writer = PdfFileWriter()
+    pdf_writer = PyPDF2.PdfFileWriter()
 
     # Initialize a list to store the page numbers
     page_nums = [0]
@@ -60,21 +61,31 @@ def delete_duplicate_pages(uploaded_file):
         if i not in del_list:
             pdf_writer.addPage(page)
 
-    # Create a bytes buffer to write the output PDF to
-    output_buffer = io.BytesIO()
+    # Save the new PDF file in write binary mode
+    output_file = io.BytesIO()
+    pdf_writer.write(output_file)
 
-    # Save the new PDF file in write binary mode to the buffer
-    pdf_writer.write(output_buffer)
-
-    # Reset the buffer position to the start
-    output_buffer.seek(0)
-
-    return output_buffer
+    return output_file.getvalue()
 
 
 def main():
     st.title("Delete Duplicate Pages from PDF")
-    uploaded_file = st.file_uploader("Choose a PDF file")
+
+    # Upload the PDF file
+    uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
+
     if uploaded_file is not None:
+        # Delete duplicate pages and get the output file
         output_file = delete_duplicate_pages(uploaded_file)
-        st.download_button("Download Output PDF", data=output_file.getvalue(), file_name="output.pdf")
+
+        # Create a download button for the output file
+        st.download_button(
+            label="Download the Output PDF file",
+            data=output_file,
+            file_name="output.pdf",
+            mime="application/pdf",
+        )
+
+
+if __name__ == "__main__":
+    main()
