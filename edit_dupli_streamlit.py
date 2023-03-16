@@ -15,4 +15,4 @@ if uploaded_file is not None:
     text = page.extractText()
 
     # Display the extracted text
-    st.text(text)
+    st.write(text)
