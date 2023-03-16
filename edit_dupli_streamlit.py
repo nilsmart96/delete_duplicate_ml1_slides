@@ -77,18 +77,20 @@ def main():
     if uploaded_file is not None:
         with NamedTemporaryFile(dir='.', suffix='.pdf') as f:
             f.write(uploaded_file.getbuffer())
-        # your_function_which_takes_a_path(f.name)
 
-        # Delete duplicate pages and get the output file
-            output_file = delete_duplicate_pages(f.name)
+            # Delete duplicate pages and get the output file name
+            output_file_name = delete_duplicate_pages(f.name)
 
-        # Create a download button for the output file
-        st.download_button(
-            label="Download the Output PDF file",
-            data=output_file,
-            file_name="output.pdf",
-            mime="application/pdf",
-        )
+            # Create a download button for the output file
+            with open(output_file_name, "rb") as output_file:
+                output_file_contents = output_file.read()
+                st.download_button(
+                    label="Download the Output PDF file",
+                    data=output_file_contents,
+                    file_name="output.pdf",
+                    mime="application/pdf",
+                )
+
 
 
 if __name__ == "__main__":
