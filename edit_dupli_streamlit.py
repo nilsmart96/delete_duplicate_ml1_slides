@@ -1,14 +1,14 @@
 import streamlit as st
+import io
 import PyPDF2
-from tempfile import NamedTemporaryFile
 
 
 def delete_duplicate_pages(input_file):
-    # Open the PDF file in read binary mode
-    pdf_file = open(input_file, "rb")
+    # Open the uploaded PDF file in read binary mode
+    pdf_file = input_file.read()
 
     # Create a PDF reader object
-    pdf_reader = PyPDF2.PdfFileReader(pdf_file)
+    pdf_reader = PyPDF2.PdfFileReader(io.BytesIO(pdf_file))
 
     # Create a PDF writer object
     pdf_writer = PyPDF2.PdfFileWriter()
@@ -62,10 +62,10 @@ def delete_duplicate_pages(input_file):
             pdf_writer.addPage(page)
 
     # Save the new PDF file in write binary mode
-    output_file = open("output.pdf", "wb")
+    output_file = io.BytesIO()
     pdf_writer.write(output_file)
 
-    return output_file
+    return output_file.getvalue()
 
 
 def main():
@@ -75,22 +75,16 @@ def main():
     uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
 
     if uploaded_file is not None:
-        with NamedTemporaryFile(dir='.', suffix='.pdf') as f:
-            f.write(uploaded_file.getbuffer())
+        # Delete duplicate pages and get the output file
+        output_file = delete_duplicate_pages(uploaded_file)
 
-            # Delete duplicate pages and get the output file name
-            output_file_name = delete_duplicate_pages(f.name)
-
-            # Create a download button for the output file
-            with open(output_file_name, "rb") as output_file:
-                output_file_contents = output_file.read()
-                st.download_button(
-                    label="Download the Output PDF file",
-                    data=output_file_contents,
-                    file_name="output.pdf",
-                    mime="application/pdf",
-                )
-
+        # Create a download button for the output file
+        st.download_button(
+            label="Download the Output PDF file",
+            data=output_file,
+            file_name="output.pdf",
+            mime="application/pdf",
+        )
 
 
 if __name__ == "__main__":
