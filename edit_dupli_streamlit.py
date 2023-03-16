@@ -75,7 +75,7 @@ def main():
     uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
 
     if uploaded_file is not None:
-        with NamedTemporaryFile(dir='.', suffix='.csv') as f:
+        with NamedTemporaryFile(dir='.', suffix='.pdf') as f:
             f.write(uploaded_file.getbuffer())
         # your_function_which_takes_a_path(f.name)
 
