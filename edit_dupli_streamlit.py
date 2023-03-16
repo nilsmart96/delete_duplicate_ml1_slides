@@ -1,5 +1,6 @@
 import streamlit as st
 import PyPDF2
+from tempfile import NamedTemporaryFile
 
 
 def delete_duplicate_pages(input_file):
@@ -74,8 +75,12 @@ def main():
     uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
 
     if uploaded_file is not None:
+        with NamedTemporaryFile(dir='.', suffix='.csv') as f:
+            f.write(uploaded_file.getbuffer())
+        # your_function_which_takes_a_path(f.name)
+
         # Delete duplicate pages and get the output file
-        output_file = delete_duplicate_pages(uploaded_file.name)
+            output_file = delete_duplicate_pages(f.name)
 
         # Create a download button for the output file
         st.download_button(
