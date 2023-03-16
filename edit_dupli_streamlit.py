@@ -71,12 +71,12 @@ input_file = st.file_uploader("Upload a PDF file", type="pdf")
 
 if input_file is not None:
     # Save the uploaded file to a temporary location
-    with open("input_file.pdf", "wb") as f:
-        f.write(input_file.getbuffer())
+    with open("input_file.pdf", "wb") as input_:
+        input_.write(input_file.getbuffer())
 
     # Call the delete_duplicate_pages function
     delete_duplicate_pages("input_file.pdf", "output_file.pdf")
 
     # Download the output file
-    with open("output_file.pdf", "rb") as f:
-        st.download_button("Download the output file", f.read(), file_name="output_file.pdf", mime="application/pdf")
+    with open("output_file.pdf", "rb") as output:
+        st.download_button("Download the output file", output.read(), file_name="output_file.pdf", mime="application/pdf")
